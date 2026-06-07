@@ -1,3 +1,7 @@
-export default function AddMoviePage() {
-  return <h1>Add Movie</h1>;
-}
+const AddMoviePage = () => {
+  return (
+    <h1>Add Movie</h1>
+  );
+};
+
+export default AddMoviePage;

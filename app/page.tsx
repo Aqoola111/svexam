@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-export default function Home() {
+const Home = () => {
   const [message, setMessage] = useState("Loading...");
 
   useEffect(() => {
@@ -11,5 +11,9 @@ export default function Home() {
       .then((data) => setMessage(data.message));
   }, []);
 
-  return <main>{message}</main>;
-}
+  return (
+    <main>{message}</main>
+  );
+};
+
+export default Home;
