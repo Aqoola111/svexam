@@ -21,3 +21,9 @@ export const addMovieSchema = z.object({
 
 export type AddMovieInput = z.input<typeof addMovieSchema>;
 export type AddMovieValues = z.output<typeof addMovieSchema>;
+
+export const deleteMovieSchema = z.object({
+  id: z.string().min(1, "Movie ID is required"),
+});
+
+export type DeleteMovieInput = z.infer<typeof deleteMovieSchema>;
