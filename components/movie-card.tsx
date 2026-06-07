@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { getGenreGradientClasses } from "@/lib/genre-gradients";
 import { cn } from "@/lib/utils";
 
 type MovieCardProps = {
@@ -52,17 +53,20 @@ const MovieCard = ({ movie, onDeleted }: MovieCardProps) => {
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 transition-opacity duration-300 group-hover/card:opacity-100"
+        className={cn(
+          "pointer-events-none absolute inset-x-0 top-0 h-16 opacity-30 group-hover/card:h-20 group-hover/card:opacity-50",
+          getGenreGradientClasses(movie.genre)
+        )}
       />
 
-      <CardHeader className="gap-3 border-b border-border/50 pb-4 pt-5">
+      <CardHeader className="relative z-10 gap-3 border-b border-border/50 pb-4 pt-5">
         <CardTitle className="pr-2 font-heading text-lg font-semibold leading-snug tracking-tight text-balance">
           {movie.title}
         </CardTitle>
         <CardAction>
           <Badge
             variant="outline"
-            className="h-6 shrink-0 gap-1.5 rounded-full border-border/80 bg-background/80 px-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground shadow-sm backdrop-blur-sm transition-colors duration-200 group-hover/card:border-primary/25 group-hover/card:text-foreground"
+            className="relative z-10 h-6 shrink-0 gap-1.5 rounded-full border-border/80 bg-background/80 px-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground shadow-sm backdrop-blur-sm transition-colors duration-200 group-hover/card:border-primary/25 group-hover/card:text-foreground"
           >
             <FilmIcon className="size-3 text-primary/70" />
             {movie.genre}
