@@ -11,3 +11,15 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Movie {
+  id          String   @id @default(cuid())
+  title       String   @db.VarChar(20)
+  genre       String
+  description String   @db.VarChar(200)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([title])
+  @@index([createdAt])
+}
