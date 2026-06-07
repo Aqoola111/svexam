@@ -48,3 +48,9 @@ export const searchMoviesSchema = z.object({
 });
 
 export type SearchMoviesInput = z.infer<typeof searchMoviesSchema>;
+
+export const listMoviesSchema = z.object({
+  sort: z.enum(["asc", "desc"]).default("desc"),
+});
+
+export type ListMoviesInput = z.infer<typeof listMoviesSchema>;

@@ -9,6 +9,7 @@ import {
   addMovieSchema,
   deleteMovieSchema,
   generateDescriptionSchema,
+  listMoviesSchema,
   searchMoviesSchema,
 } from "@/lib/validations/movie";
 
@@ -47,6 +48,16 @@ export const deleteMovie = actionClient
     revalidatePath("/search-movies");
 
     return { success: true };
+  });
+
+export const listMovies = actionClient
+  .inputSchema(listMoviesSchema)
+  .action(async ({ parsedInput }) => {
+    const movies = await prisma.movie.findMany({
+      orderBy: { createdAt: parsedInput.sort },
+    });
+
+    return { movies };
   });
 
 export const searchMovies = actionClient
