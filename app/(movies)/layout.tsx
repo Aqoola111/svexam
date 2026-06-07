@@ -19,7 +19,7 @@ export default function MoviesLayout({
           <SidebarTrigger />
           <Separator orientation="vertical" className="mr-2 h-4" />
         </header>
-        <div className="p-4">{children}</div>
+        <main className="flex min-h-0 flex-1 flex-col p-4">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );
