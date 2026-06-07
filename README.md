@@ -2,8 +2,8 @@
 
 A small full-stack app for managing a personal movie watchlist — browse, add, search, delete, and generate descriptions with AI.
 
-**Live app:** _(add your Vercel URL here)_  
-**Repo:** _(add your GitHub URL here)_
+**Live app:** svexam.vercel.app
+**Repo:** https://github.com/Aqoola111/svexam
 
 ---
 
