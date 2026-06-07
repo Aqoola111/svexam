@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import AllMoviesContent from "@/components/all-movies-content";
+import AllMoviesContent from "@/components/all-movies/all-movies-content";
 
 export const metadata: Metadata = {
   title: "All Movies",
