@@ -51,7 +51,7 @@ const MovieCard = ({ movie, onDeleted, highlight }: MovieCardProps) => {
   return (
     <Card
       className={cn(
-        "group/card relative gap-0 py-0 shadow-sm ring-1 ring-border/60",
+        "group/card relative flex h-full flex-col gap-0 py-0 shadow-sm ring-1 ring-border/60",
         "transition-all duration-300 ease-out",
         highlight?.variant !== "selected" &&
           "hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 hover:ring-border",
@@ -84,12 +84,12 @@ const MovieCard = ({ movie, onDeleted, highlight }: MovieCardProps) => {
         </CardAction>
       </CardHeader>
 
-      <CardContent className="py-4">
-        <div className="space-y-2.5 rounded-xl border border-border/40 bg-muted/25 px-3.5 py-3.5 transition-colors duration-300 group-hover/card:border-border/60 group-hover/card:bg-muted/40">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/80">
+      <CardContent className="flex flex-1 flex-col py-4">
+        <div className="flex min-h-36 flex-col space-y-2.5 rounded-xl border border-border/40 bg-muted/25 px-3.5 py-3.5 transition-colors duration-300 group-hover/card:border-border/60 group-hover/card:bg-muted/40">
+          <p className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/80">
             Synopsis
           </p>
-          <p className="text-sm leading-relaxed text-foreground/85 text-pretty">
+          <p className="min-h-[5.5rem] flex-1 text-sm leading-relaxed text-foreground/85 text-pretty">
             {movie.description}
           </p>
         </div>
