@@ -81,16 +81,16 @@ const AddMovieForm = () => {
     <div className="flex flex-1 items-center justify-center py-6">
       <div
         className={cn(
-          "w-full max-w-lg space-y-6",
+          "w-full max-w-lg",
           "md:rounded-[min(var(--radius-4xl),24px)] md:bg-card md:p-6 md:shadow-sm md:ring-1 md:ring-foreground/5 md:dark:ring-foreground/10"
         )}
       >
         <form
           onSubmit={form.handleSubmit(handleAddMovie)}
-          className="space-y-6"
+          className="space-y-4"
         >
-          <FieldGroup>
-            <Field data-invalid={!!form.formState.errors.title}>
+          <FieldGroup className="gap-3">
+            <Field className="gap-1.5" data-invalid={!!form.formState.errors.title}>
               <FieldLabel htmlFor="title">Title</FieldLabel>
               <Input
                 id="title"
@@ -102,7 +102,7 @@ const AddMovieForm = () => {
               <ReservedFieldError errors={[form.formState.errors.title]} />
             </Field>
 
-            <Field data-invalid={!!form.formState.errors.genre}>
+            <Field className="gap-1.5" data-invalid={!!form.formState.errors.genre}>
               <FieldLabel htmlFor="genre">Genre</FieldLabel>
               <Controller
                 name="genre"
@@ -119,7 +119,7 @@ const AddMovieForm = () => {
               <ReservedFieldError errors={[form.formState.errors.genre]} />
             </Field>
 
-            <Field data-invalid={!!form.formState.errors.description}>
+            <Field className="gap-1.5" data-invalid={!!form.formState.errors.description}>
               <div className="flex items-center justify-between gap-3">
                 <FieldLabel htmlFor="description">Description</FieldLabel>
                 <Tooltip>
