@@ -2,10 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SparklesIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAction } from "next-safe-action/hooks";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
+import { addMovie } from "@/actions/movies";
 import GenreCombobox from "@/components/genre-combobox";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,28 +23,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { MOVIE_GENRES, type MovieGenre } from "@/lib/movie-genres";
 import { cn } from "@/lib/utils";
-
-const addMovieSchema = z.object({
-  title: z
-    .string()
-    .min(1, "Title is required")
-    .max(20, "Title must be at most 20 characters"),
-  genre: z
-    .string()
-    .min(1, "Genre is required")
-    .refine((value): value is MovieGenre =>
-      MOVIE_GENRES.includes(value as MovieGenre)
-    ),
-  description: z
-    .string()
-    .min(1, "Description is required")
-    .max(200, "Description must be at most 200 characters"),
-});
-
-type AddMovieFormInput = z.input<typeof addMovieSchema>;
-type AddMovieFormValues = z.output<typeof addMovieSchema>;
+import {
+  addMovieSchema,
+  type AddMovieInput,
+  type AddMovieValues,
+} from "@/lib/validations/movie";
 
 type ReservedFieldErrorProps = {
   errors: Array<{ message?: string } | undefined>;
@@ -57,12 +43,34 @@ const ReservedFieldError = ({ errors }: ReservedFieldErrorProps) => {
 };
 
 const AddMovieForm = () => {
-  const form = useForm<AddMovieFormInput, unknown, AddMovieFormValues>({
+  const router = useRouter();
+
+  const form = useForm<AddMovieInput, unknown, AddMovieValues>({
     resolver: zodResolver(addMovieSchema),
     defaultValues: {
       title: "",
       genre: "",
       description: "",
+    },
+  });
+
+  const { execute, isExecuting } = useAction(addMovie, {
+    onSuccess: () => {
+      toast.success("Movie added successfully");
+      form.reset();
+      router.push("/all-movies");
+    },
+    onError: ({ error }) => {
+      if (error.validationErrors) {
+        toast.error("Please fix the validation errors.");
+        return;
+      }
+
+      toast.error(
+        typeof error.serverError === "string"
+          ? error.serverError
+          : "Failed to add movie"
+      );
     },
   });
 
@@ -73,8 +81,8 @@ const AddMovieForm = () => {
     );
   };
 
-  const handleAddMovie = (values: AddMovieFormValues) => {
-    toast.success(`Add movie: ${JSON.stringify(values)}`);
+  const handleAddMovie = (values: AddMovieValues) => {
+    execute(values);
   };
 
   return (
@@ -153,8 +161,13 @@ const AddMovieForm = () => {
             </Field>
           </FieldGroup>
 
-          <Button type="submit" className="w-full" size="lg">
-            Add Movie
+          <Button
+            type="submit"
+            className="w-full"
+            size="lg"
+            disabled={isExecuting}
+          >
+            {isExecuting ? "Adding..." : "Add Movie"}
           </Button>
         </form>
       </div>
