@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Movie Watchlist
 
-## Getting Started
+A small full-stack app for managing a personal movie watchlist — browse, add, search, delete, and generate descriptions with AI.
 
-First, run the development server:
+**Live app:** _(add your Vercel URL here)_  
+**Repo:** _(add your GitHub URL here)_
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## What it does (user flow)
+
+1. Land on **All Movies** (`/all-movies`) — see every movie as a card with title, genre, synopsis, and a delete button.
+2. **Add Movie** (`/add-movie`) — fill in title, pick a genre, write a description (or hit *Generate with AI*), submit. On success you get redirected back to the list.
+3. **Search Movies** (`/search-movies`) — type a title, results update live as you type. No search button, same as the exam spec.
+4. **Delete** — click delete on any card, toast confirms it, list refreshes.
+
+Extra stuff I added on top of the bare minimum: sort newest/oldest, a random movie picker with a little roulette animation, and a sidebar for navigation.
+
+---
+
+## Stack (and why)
+
+| Layer | Choice | Why |
+|-------|--------|-----|
+| Framework | **Next.js 16** (App Router) | One repo, deploys straight to Vercel, server + client in the same project |
+| Database | **PostgreSQL** (Neon) + **Prisma 7** | Hosted Postgres is free/easy on Vercel; Prisma gives typed queries and migrations |
+| API layer | **Server Actions** + **next-safe-action** | Less boilerplate than Express routes; Zod validation runs before the handler |
+| Forms | **react-hook-form** + **Zod** | Client validation with the same schemas the server uses |
+| UI | **Tailwind 4** + **shadcn/ui** | Required by the exam; fast to build something that doesn't look like a homework template |
+| AI | **Google Gemini** (`@google/generative-ai`) | Structured JSON output for descriptions; retry logic when the API rate-limits you |
+| Toasts | **Sonner** | Nicer than `alert()` for errors and success messages |
+
+I went with a modern Next.js full-stack setup instead of a separate Express server because the exam also asks for Vercel deploy — running one Next app is simpler than maintaining two repos.
+
+---
+
+## Differences from the exam spec
+
+The PDF asks for **Express + MongoDB** with REST endpoints (`GET /movies`, `POST /movies`, etc.) and **Vercel AI Gateway** for `POST /movies/generate`.
+
+Here's what I did differently and why:
+
+| Exam spec | This project | Reason |
+|-----------|--------------|--------|
+| Express backend | Server Actions in `actions/movies.ts` | Same job — CRUD hits the DB — but fits the Next.js model and deploys as one unit |
+| MongoDB | PostgreSQL + Prisma | Relational DB + Prisma schema enforces `VARCHAR(20)` / `VARCHAR(200)` at the DB level |
+| `fetch` / `axios` to REST routes | `useAction` / `executeAsync` from next-safe-action | Still real server round-trips to a real database; just no manual HTTP client code |
+| `POST /movies/generate` via AI Gateway | `generateDescription` server action → Gemini API | Direct Gemini call with `GEMINI_API_KEY`; returns the same `{ description }` shape |
+| `alert()` on validation errors | Inline field errors + Sonner toasts | Better UX, still shows what's wrong |
+| Genre as free-text input | Combobox with a fixed genre list | Stops typos, looks cleaner on cards |
+| — | Random pick, sort, sidebar, mobile-first add form | Polish on top of required pages |
+
+**What stayed the same:** routes `/all-movies`, `/add-movie`, `/search-movies`; live search without a button; title max 20 chars, description max 200; delete per card; AI generates description without auto-saving.
+
+---
+
+## How it works under the hood
+
+```
+Browser (client components)
+    ↓  useAction / executeAsync
+Server Actions (actions/movies.ts)  ← "use server"
+    ↓  Zod validates input
+Prisma → PostgreSQL (Neon)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Add / delete / list / search** — each action validates with Zod (`lib/validations/movie.ts`), talks to Prisma, then `revalidatePath` so cached pages stay fresh.
+- **Search** — debounced 300ms on the client; server does a case-insensitive `contains` on title. Empty query returns `[]`.
+- **AI description** — `lib/gemini.ts` calls Gemini with a JSON schema, trims to 200 chars, retries on 429/503. The key stays server-side only.
+- **All Movies** — `useMovieList` fetches on mount and after delete; `useRandomMoviePick` runs a stepped timer for the roulette effect (timers cleared on unmount / cancel).
+- **Mobile add form** — plain layout on small screens; at `md+` it gets border, shadow, and card padding. No heavy Card wrapper on phone.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Env vars you need:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+DATABASE_URL=postgresql://...
+GEMINI_API_KEY=...
+# optional
+GEMINI_MODEL=gemini-2.5-flash-lite
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## AI usage (exam requirement)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+I used **Cursor / AI** while building this — mostly for scaffolding shadcn components, refactoring the all-movies page into smaller files, and tightening up race-condition fixes in search and the random picker. I reviewed and adjusted everything; the architecture choices above are mine.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Run locally
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm install
+npm run dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000) — it redirects to `/all-movies`.
+
+```bash
+npm run build   # production build + typecheck
+npx tsc --noEmit
+```
