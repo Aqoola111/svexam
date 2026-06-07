@@ -35,12 +35,6 @@ export const useRandomMoviePick = (movies: Movie[]) => {
     return () => clearPickTimer();
   }, [clearPickTimer]);
 
-  useEffect(() => {
-    if (pickedId && !movies.some((movie) => movie.id === pickedId)) {
-      clearSelection();
-    }
-  }, [movies, pickedId, clearSelection]);
-
   const pickRandomMovie = useCallback(() => {
     if (movies.length === 0 || isPicking) {
       return;

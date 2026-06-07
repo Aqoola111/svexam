@@ -126,9 +126,7 @@ const AddMovieForm = () => {
         </div>
 
         <form
-          onSubmit={form.handleSubmit((values) => execute(values))}
-          className="space-y-3"
-        >
+          onSubmit={form.handleSubmit((values) => execute(values))}>
           <Field className="gap-1.5" data-invalid={!!form.formState.errors.title}>
             <div className="flex items-center justify-between gap-3">
               <FieldLabel htmlFor="title">Title</FieldLabel>

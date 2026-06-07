@@ -2,7 +2,7 @@
 
 import { useAction } from "next-safe-action/hooks";
 import { SearchIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { searchMovies } from "@/actions/movies";
 import type { Movie } from "@/app/generated/prisma/client";
@@ -18,6 +18,11 @@ const SearchMoviesContent = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
 
   const { executeAsync, isExecuting } = useAction(searchMovies);
+  const debouncedQueryRef = useRef(debouncedQuery);
+
+  useEffect(() => {
+    debouncedQueryRef.current = debouncedQuery;
+  }, [debouncedQuery]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -33,7 +38,6 @@ const SearchMoviesContent = () => {
     let cancelled = false;
 
     if (!debouncedQuery.trim()) {
-      setMovies([]);
       return;
     }
 
@@ -114,7 +118,13 @@ const SearchMoviesContent = () => {
                 key={movie.id}
                 movie={movie}
                 onDeleted={() => {
-                  executeAsync({ name: debouncedQuery }).then((result) => {
+                  const query = debouncedQueryRef.current;
+
+                  executeAsync({ name: query }).then((result) => {
+                    if (query !== debouncedQueryRef.current) {
+                      return;
+                    }
+
                     setMovies(getActionData(result)?.movies ?? []);
                   });
                 }}
