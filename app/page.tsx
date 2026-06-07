@@ -1,19 +1,7 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import { redirect } from "next/navigation";
 
 const Home = () => {
-  const [message, setMessage] = useState("Loading...");
-
-  useEffect(() => {
-    fetch("/api/hello")
-      .then((res) => res.json())
-      .then((data) => setMessage(data.message));
-  }, []);
-
-  return (
-    <main>{message}</main>
-  );
+  redirect("/all-movies");
 };
 
 export default Home;
