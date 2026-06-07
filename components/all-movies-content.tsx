@@ -4,6 +4,7 @@ import { useAction } from "next-safe-action/hooks";
 import { DicesIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { listMovies } from "@/actions/movies";
 import type { Movie } from "@/app/generated/prisma/client";
@@ -93,9 +94,11 @@ const AllMoviesContent = () => {
       step += 1;
 
       if (step > totalSteps) {
+        const winner = movies[winnerIndex];
         setActiveIndex(winnerIndex);
-        setPickedId(movies[winnerIndex].id);
+        setPickedId(winner.id);
         setIsPicking(false);
+        toast.success(`Picked: ${winner.title}`);
         return;
       }
 
@@ -141,15 +144,16 @@ const AllMoviesContent = () => {
           <p className="text-muted-foreground">{movieCountLabel}</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           {movies.length > 0 ? (
-            <>
+            <div className="flex h-9 w-full gap-2 sm:w-auto">
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
                 onClick={pickRandomMovie}
                 disabled={isPicking}
+                className="h-9 min-w-0 flex-1 sm:flex-none"
               >
                 <DicesIcon />
                 {isPicking ? "Picking..." : "Pick Random Movie"}
@@ -160,12 +164,13 @@ const AllMoviesContent = () => {
                   size="sm"
                   variant="ghost"
                   onClick={clearSelection}
+                  className="h-9 shrink-0"
                 >
                   <XIcon />
                   Clear
                 </Button>
               ) : null}
-            </>
+            </div>
           ) : null}
 
           <Select
@@ -175,7 +180,11 @@ const AllMoviesContent = () => {
               setSort(value as MovieSort);
             }}
           >
-            <SelectTrigger size="sm" aria-label="Sort by date added">
+            <SelectTrigger
+              size="sm"
+              aria-label="Sort by date added"
+              className="h-9 w-full sm:w-auto"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent align="end">
