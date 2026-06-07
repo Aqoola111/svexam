@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import type { Movie } from "@/app/generated/prisma/client";
 import MovieCard from "@/components/movie-card";
 import { Button } from "@/components/ui/button";
 import prisma from "@/lib/prisma";
+
+export const metadata: Metadata = {
+  title: "All Movies",
+  description: "View every movie in your watchlist.",
+};
 
 const AllMoviesPage = async () => {
   const movies: Movie[] = await prisma.movie.findMany({
