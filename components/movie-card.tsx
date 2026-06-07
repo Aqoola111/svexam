@@ -18,12 +18,14 @@ import {
 
 type MovieCardProps = {
   movie: Movie;
+  onDeleted?: () => void;
 };
 
-const MovieCard = ({ movie }: MovieCardProps) => {
+const MovieCard = ({ movie, onDeleted }: MovieCardProps) => {
   const { execute, isExecuting } = useAction(deleteMovie, {
     onSuccess: () => {
       toast.success("Movie deleted successfully");
+      onDeleted?.();
     },
     onError: ({ error }) => {
       toast.error(

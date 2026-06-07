@@ -42,3 +42,9 @@ export const generateDescriptionSchema = z.object({
 });
 
 export type GenerateDescriptionInput = z.infer<typeof generateDescriptionSchema>;
+
+export const searchMoviesSchema = z.object({
+  name: z.string().max(20).optional(),
+});
+
+export type SearchMoviesInput = z.infer<typeof searchMoviesSchema>;

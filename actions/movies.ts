@@ -9,6 +9,7 @@ import {
   addMovieSchema,
   deleteMovieSchema,
   generateDescriptionSchema,
+  searchMoviesSchema,
 } from "@/lib/validations/movie";
 
 export const addMovie = actionClient
@@ -43,8 +44,29 @@ export const deleteMovie = actionClient
     });
 
     revalidatePath("/all-movies");
+    revalidatePath("/search-movies");
 
     return { success: true };
+  });
+
+export const searchMovies = actionClient
+  .inputSchema(searchMoviesSchema)
+  .action(async ({ parsedInput }) => {
+    const name = parsedInput.name?.trim();
+
+    const movies = await prisma.movie.findMany({
+      where: name
+        ? {
+            title: {
+              contains: name,
+              mode: "insensitive",
+            },
+          }
+        : undefined,
+      orderBy: { createdAt: "desc" },
+    });
+
+    return { movies };
   });
 
 export const generateDescription = actionClient
