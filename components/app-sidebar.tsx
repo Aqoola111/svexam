@@ -28,7 +28,9 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Movie Watchlist</SidebarGroupLabel>
+          <SidebarGroupLabel className="font-heading">
+            Movie Watchlist
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (

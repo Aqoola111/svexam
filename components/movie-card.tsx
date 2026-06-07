@@ -1,6 +1,7 @@
 "use client";
 
 import { useAction } from "next-safe-action/hooks";
+import { FilmIcon, Loader2Icon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Movie } from "@/app/generated/prisma/client";
@@ -9,12 +10,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardAction,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 type MovieCardProps = {
   movie: Movie;
@@ -41,21 +43,64 @@ const MovieCard = ({ movie, onDeleted }: MovieCardProps) => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{movie.title}</CardTitle>
-        <Badge variant="secondary">{movie.genre}</Badge>
+    <Card
+      className={cn(
+        "group/card relative gap-0 py-0 shadow-sm ring-1 ring-border/60",
+        "transition-all duration-300 ease-out",
+        "hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 hover:ring-border"
+      )}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 transition-opacity duration-300 group-hover/card:opacity-100"
+      />
+
+      <CardHeader className="gap-3 border-b border-border/50 pb-4 pt-5">
+        <CardTitle className="pr-2 font-heading text-lg font-semibold leading-snug tracking-tight text-balance">
+          {movie.title}
+        </CardTitle>
+        <CardAction>
+          <Badge
+            variant="outline"
+            className="h-6 shrink-0 gap-1.5 rounded-full border-border/80 bg-background/80 px-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground shadow-sm backdrop-blur-sm transition-colors duration-200 group-hover/card:border-primary/25 group-hover/card:text-foreground"
+          >
+            <FilmIcon className="size-3 text-primary/70" />
+            {movie.genre}
+          </Badge>
+        </CardAction>
       </CardHeader>
-      <CardContent>
-        <CardDescription>{movie.description}</CardDescription>
+
+      <CardContent className="py-4">
+        <div className="space-y-2.5 rounded-xl border border-border/40 bg-muted/25 px-3.5 py-3.5 transition-colors duration-300 group-hover/card:border-border/60 group-hover/card:bg-muted/40">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/80">
+            Synopsis
+          </p>
+          <p className="text-sm leading-relaxed text-foreground/85 text-pretty">
+            {movie.description}
+          </p>
+        </div>
       </CardContent>
-      <CardFooter>
+
+      <CardFooter className="border-t border-border/50 pb-5 pt-4">
         <Button
           type="button"
           variant="destructive"
+          size="sm"
           onClick={handleDelete}
           disabled={isExecuting}
+          className={cn(
+            "h-9 w-full gap-2 rounded-xl border border-destructive/25 bg-destructive/[0.06] font-medium shadow-none",
+            "transition-all duration-200 ease-out",
+            "hover:border-destructive/45 hover:bg-destructive/12 hover:shadow-md hover:shadow-destructive/10",
+            "active:scale-[0.98] active:shadow-sm",
+            "disabled:scale-100 disabled:opacity-60"
+          )}
         >
+          {isExecuting ? (
+            <Loader2Icon className="size-3.5 animate-spin" />
+          ) : (
+            <Trash2Icon className="size-3.5 transition-transform duration-200 group-hover/button:scale-110" />
+          )}
           {isExecuting ? "Deleting..." : "Delete Movie"}
         </Button>
       </CardFooter>

@@ -8,6 +8,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@/components/ui/combobox";
+import { cn } from "@/lib/utils";
 import { MOVIE_GENRES } from "@/lib/movie-genres";
 
 type GenreComboboxProps = {
@@ -15,6 +16,7 @@ type GenreComboboxProps = {
   value: string;
   onValueChange: (value: string) => void;
   invalid?: boolean;
+  className?: string;
 };
 
 const GenreCombobox = ({
@@ -22,6 +24,7 @@ const GenreCombobox = ({
   value,
   onValueChange,
   invalid = false,
+  className,
 }: GenreComboboxProps) => {
   return (
     <Combobox
@@ -31,7 +34,7 @@ const GenreCombobox = ({
     >
       <ComboboxInput
         id={id}
-        className="w-full"
+        className={cn("w-full", className)}
         placeholder="Search or select a genre"
         aria-invalid={invalid}
         showClear={!!value}

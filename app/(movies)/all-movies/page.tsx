@@ -15,7 +15,7 @@ const AllMoviesPage = async () => {
   return (
     <div className="flex h-full min-h-0 w-full flex-1 flex-col">
       <div className="shrink-0 space-y-1">
-        <h1 className="text-2xl font-semibold">All Movies</h1>
+        <h1 className="font-heading text-2xl font-semibold">All Movies</h1>
         <p className="text-muted-foreground">{movieCountLabel}</p>
       </div>
 
