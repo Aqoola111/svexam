@@ -65,15 +65,17 @@ export const searchMovies = actionClient
   .action(async ({ parsedInput }) => {
     const name = parsedInput.name?.trim();
 
+    if (!name) {
+      return { movies: [] };
+    }
+
     const movies = await prisma.movie.findMany({
-      where: name
-        ? {
-            title: {
-              contains: name,
-              mode: "insensitive",
-            },
-          }
-        : undefined,
+      where: {
+        title: {
+          contains: name,
+          mode: "insensitive",
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
 

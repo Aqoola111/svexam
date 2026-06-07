@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { getActionData } from "@/lib/action-utils";
 import {
   addMovieSchema,
   type AddMovieInput,
@@ -51,8 +52,15 @@ const AddMovieForm = () => {
   const { execute: executeGenerate, isExecuting: isGenerating } = useAction(
     generateDescription,
     {
-      onSuccess: ({ data }) => {
-        form.setValue("description", data.description, {
+      onSuccess: (result) => {
+        const description = getActionData(result)?.description;
+
+        if (!description) {
+          toast.error("Failed to generate description.");
+          return;
+        }
+
+        form.setValue("description", description, {
           shouldDirty: true,
           shouldValidate: true,
         });
@@ -119,7 +127,7 @@ const AddMovieForm = () => {
 
         <form
           onSubmit={form.handleSubmit((values) => execute(values))}
-          className=""
+          className="space-y-3"
         >
           <Field className="gap-1.5" data-invalid={!!form.formState.errors.title}>
             <div className="flex items-center justify-between gap-3">

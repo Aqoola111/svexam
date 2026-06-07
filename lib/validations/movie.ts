@@ -10,9 +10,9 @@ export const addMovieSchema = z.object({
   genre: z
     .string()
     .min(1, "Genre is required")
-    .refine((value): value is MovieGenre =>
-      MOVIE_GENRES.includes(value as MovieGenre)
-    ),
+    .refine((value): value is MovieGenre => MOVIE_GENRES.includes(value as MovieGenre), {
+      message: "Please select a valid genre",
+    }),
   description: z
     .string()
     .min(1, "Description is required")
@@ -36,9 +36,9 @@ export const generateDescriptionSchema = z.object({
   genre: z
     .string()
     .min(1, "Genre is required")
-    .refine((value): value is MovieGenre =>
-      MOVIE_GENRES.includes(value as MovieGenre)
-    ),
+    .refine((value): value is MovieGenre => MOVIE_GENRES.includes(value as MovieGenre), {
+      message: "Please select a valid genre",
+    }),
 });
 
 export type GenerateDescriptionInput = z.infer<typeof generateDescriptionSchema>;

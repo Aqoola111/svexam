@@ -8,6 +8,7 @@ import { searchMovies } from "@/actions/movies";
 import type { Movie } from "@/app/generated/prisma/client";
 import MovieCard from "@/components/movie-card";
 import { Input } from "@/components/ui/input";
+import { getActionData } from "@/lib/action-utils";
 
 const DEBOUNCE_MS = 300;
 
@@ -16,14 +17,7 @@ const SearchMoviesContent = () => {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [movies, setMovies] = useState<Movie[]>([]);
 
-  const { execute, isExecuting } = useAction(searchMovies, {
-    onSuccess: (res) => {
-      setMovies(res.data?.movies ?? []);
-    },
-    onError: () => {
-      setMovies([]);
-    },
-  });
+  const { executeAsync, isExecuting } = useAction(searchMovies);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -36,13 +30,33 @@ const SearchMoviesContent = () => {
   }, [query]);
 
   useEffect(() => {
+    let cancelled = false;
+
     if (!debouncedQuery.trim()) {
       setMovies([]);
       return;
     }
 
-    execute({ name: debouncedQuery });
-  }, [debouncedQuery, execute]);
+    executeAsync({ name: debouncedQuery })
+      .then((result) => {
+        if (cancelled) {
+          return;
+        }
+
+        setMovies(getActionData(result)?.movies ?? []);
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+
+        setMovies([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedQuery, executeAsync]);
 
   const hasSearchQuery = debouncedQuery.trim().length > 0;
   const resultLabel = movies.length === 1 ? "result" : "results";
@@ -99,7 +113,11 @@ const SearchMoviesContent = () => {
               <MovieCard
                 key={movie.id}
                 movie={movie}
-                onDeleted={() => execute({ name: debouncedQuery })}
+                onDeleted={() => {
+                  executeAsync({ name: debouncedQuery }).then((result) => {
+                    setMovies(getActionData(result)?.movies ?? []);
+                  });
+                }}
               />
             ))}
           </div>

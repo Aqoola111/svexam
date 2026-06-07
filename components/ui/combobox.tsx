@@ -17,7 +17,7 @@ function Combobox({
   className,
   children,
   ...props
-}: ComboboxPrimitive.Root.Props<string, "single"> & { className?: string }) {
+}: ComboboxPrimitive.Root.Props<string> & { className?: string }) {
   return (
     <div data-slot="combobox" className={className}>
       <ComboboxPrimitive.Root {...props}>{children}</ComboboxPrimitive.Root>

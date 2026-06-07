@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getActionData } from "@/lib/action-utils";
 
 type MovieSort = "asc" | "desc";
 
@@ -41,15 +42,9 @@ const AllMoviesContent = () => {
   const [pickedId, setPickedId] = useState<string | null>(null);
   const [isPicking, setIsPicking] = useState(false);
   const pickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pickSessionRef = useRef(0);
 
-  const { execute, isExecuting } = useAction(listMovies, {
-    onSuccess: (res) => {
-      setMovies(res.data?.movies ?? []);
-    },
-    onError: () => {
-      setMovies([]);
-    },
-  });
+  const { executeAsync, isExecuting } = useAction(listMovies);
 
   const clearPickTimer = useCallback(() => {
     if (pickTimerRef.current) {
@@ -59,6 +54,7 @@ const AllMoviesContent = () => {
   }, []);
 
   const clearSelection = useCallback(() => {
+    pickSessionRef.current += 1;
     clearPickTimer();
     setIsPicking(false);
     setPickedId(null);
@@ -67,34 +63,73 @@ const AllMoviesContent = () => {
   }, [clearPickTimer]);
 
   useEffect(() => {
-    execute({ sort });
-  }, [sort, execute]);
+    let cancelled = false;
+
+    executeAsync({ sort })
+      .then((result) => {
+        if (cancelled) {
+          return;
+        }
+
+        setMovies(getActionData(result)?.movies ?? []);
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+
+        setMovies([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sort, executeAsync]);
 
   useEffect(() => {
     return () => clearPickTimer();
   }, [clearPickTimer]);
+
+  useEffect(() => {
+    if (pickedId && !movies.some((movie) => movie.id === pickedId)) {
+      clearSelection();
+    }
+  }, [movies, pickedId, clearSelection]);
 
   const pickRandomMovie = () => {
     if (movies.length === 0 || isPicking) {
       return;
     }
 
+    const session = pickSessionRef.current + 1;
+    pickSessionRef.current = session;
     clearPickTimer();
     setIsPicking(true);
     setPickedId(null);
 
-    const winnerIndex = Math.floor(Math.random() * movies.length);
-    const totalSteps = movies.length * 3 + winnerIndex;
+    const snapshot = [...movies];
+    const winnerIndex = Math.floor(Math.random() * snapshot.length);
+    const totalSteps = snapshot.length * 3 + winnerIndex;
     let step = 0;
 
     const tick = () => {
-      const currentIndex = step % movies.length;
+      if (session !== pickSessionRef.current) {
+        return;
+      }
+
+      const currentIndex = step % snapshot.length;
       setActiveIndex(currentIndex);
       setSpinColorIndex(step % SPIN_RING_COLORS.length);
       step += 1;
 
       if (step > totalSteps) {
-        const winner = movies[winnerIndex];
+        const winner = snapshot[winnerIndex];
+
+        if (!winner || session !== pickSessionRef.current) {
+          setIsPicking(false);
+          return;
+        }
+
         setActiveIndex(winnerIndex);
         setPickedId(winner.id);
         setIsPicking(false);
@@ -130,7 +165,10 @@ const AllMoviesContent = () => {
     if (pickedId) {
       clearSelection();
     }
-    execute({ sort });
+
+    executeAsync({ sort }).then((result) => {
+      setMovies(getActionData(result)?.movies ?? []);
+    });
   };
 
   const movieCountLabel =
@@ -206,7 +244,11 @@ const AllMoviesContent = () => {
             />
           ))}
         </div>
-      ) : !isExecuting ? (
+      ) : isExecuting ? (
+        <div className="mt-6 flex flex-1 items-center justify-center">
+          <p className="text-sm text-muted-foreground">Loading movies...</p>
+        </div>
+      ) : (
         <div className="flex flex-1 items-center justify-center">
           <div className="flex flex-col items-center gap-4 text-center">
             <p className="text-muted-foreground">No movies yet</p>
@@ -215,7 +257,7 @@ const AllMoviesContent = () => {
             </Button>
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 };
