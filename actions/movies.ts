@@ -2,9 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 
+import { generateMovieDescription } from "@/lib/gemini";
 import prisma from "@/lib/prisma";
 import { actionClient } from "@/lib/safe-action";
-import { addMovieSchema, deleteMovieSchema } from "@/lib/validations/movie";
+import {
+  addMovieSchema,
+  deleteMovieSchema,
+  generateDescriptionSchema,
+} from "@/lib/validations/movie";
 
 export const addMovie = actionClient
   .inputSchema(addMovieSchema)
@@ -40,4 +45,15 @@ export const deleteMovie = actionClient
     revalidatePath("/all-movies");
 
     return { success: true };
+  });
+
+export const generateDescription = actionClient
+  .inputSchema(generateDescriptionSchema)
+  .action(async ({ parsedInput }) => {
+    const description = await generateMovieDescription(
+      parsedInput.title,
+      parsedInput.genre
+    );
+
+    return { description };
   });

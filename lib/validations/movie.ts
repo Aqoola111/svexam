@@ -27,3 +27,18 @@ export const deleteMovieSchema = z.object({
 });
 
 export type DeleteMovieInput = z.infer<typeof deleteMovieSchema>;
+
+export const generateDescriptionSchema = z.object({
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(20, "Title must be at most 20 characters"),
+  genre: z
+    .string()
+    .min(1, "Genre is required")
+    .refine((value): value is MovieGenre =>
+      MOVIE_GENRES.includes(value as MovieGenre)
+    ),
+});
+
+export type GenerateDescriptionInput = z.infer<typeof generateDescriptionSchema>;

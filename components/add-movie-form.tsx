@@ -7,7 +7,7 @@ import { useAction } from "next-safe-action/hooks";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { addMovie } from "@/actions/movies";
+import { addMovie, generateDescription } from "@/actions/movies";
 import GenreCombobox from "@/components/genre-combobox";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,6 +54,26 @@ const AddMovieForm = () => {
     },
   });
 
+  const { execute: executeGenerate, isExecuting: isGenerating } = useAction(
+    generateDescription,
+    {
+      onSuccess: ({ data }) => {
+        form.setValue("description", data.description, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+        toast.success("Description generated.");
+      },
+      onError: ({ error }) => {
+        toast.error(
+          typeof error.serverError === "string"
+            ? error.serverError
+            : "Failed to generate description."
+        );
+      },
+    }
+  );
+
   const { execute, isExecuting } = useAction(addMovie, {
     onSuccess: () => {
       toast.success("Movie added successfully");
@@ -75,10 +95,20 @@ const AddMovieForm = () => {
   });
 
   const handleGenerateDescription = () => {
-    const values = form.getValues();
-    toast.info(
-      `Generate AI: ${JSON.stringify({ title: values.title, genre: values.genre })}`
-    );
+    const title = form.getValues("title");
+    const genre = form.getValues("genre");
+
+    if (!title.trim()) {
+      toast.error("Enter a title before generating a description.");
+      return;
+    }
+
+    if (!genre) {
+      toast.error("Select a genre before generating a description.");
+      return;
+    }
+
+    executeGenerate({ title, genre });
   };
 
   const handleAddMovie = (values: AddMovieValues) => {
@@ -137,9 +167,12 @@ const AddMovieForm = () => {
                       variant="outline"
                       size="sm"
                       onClick={handleGenerateDescription}
+                      disabled={isGenerating}
                     >
                       <SparklesIcon />
-                      Generate Description With AI
+                      {isGenerating
+                        ? "Generating..."
+                        : "Generate Description With AI"}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
