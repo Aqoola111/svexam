@@ -19,12 +19,17 @@ import {
 import { getGenreGradientClasses } from "@/lib/genre-gradients";
 import { cn } from "@/lib/utils";
 
+export type MovieCardHighlight =
+  | { variant: "spinning"; ringClass: string }
+  | { variant: "selected" };
+
 type MovieCardProps = {
   movie: Movie;
   onDeleted?: () => void;
+  highlight?: MovieCardHighlight | null;
 };
 
-const MovieCard = ({ movie, onDeleted }: MovieCardProps) => {
+const MovieCard = ({ movie, onDeleted, highlight }: MovieCardProps) => {
   const { execute, isExecuting } = useAction(deleteMovie, {
     onSuccess: () => {
       toast.success("Movie deleted successfully");
@@ -48,7 +53,12 @@ const MovieCard = ({ movie, onDeleted }: MovieCardProps) => {
       className={cn(
         "group/card relative gap-0 py-0 shadow-sm ring-1 ring-border/60",
         "transition-all duration-300 ease-out",
-        "hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 hover:ring-border"
+        highlight?.variant !== "selected" &&
+          "hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 hover:ring-border",
+        highlight?.variant === "spinning" &&
+          cn("ring-2 ring-offset-2 ring-offset-background", highlight.ringClass),
+        highlight?.variant === "selected" &&
+          "-translate-y-0.5 ring-2 ring-primary shadow-lg shadow-primary/25 ring-offset-2 ring-offset-background"
       )}
     >
       <div

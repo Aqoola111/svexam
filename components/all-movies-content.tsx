@@ -1,12 +1,13 @@
 "use client";
 
 import { useAction } from "next-safe-action/hooks";
+import { DicesIcon, XIcon } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { listMovies } from "@/actions/movies";
 import type { Movie } from "@/app/generated/prisma/client";
-import MovieCard from "@/components/movie-card";
+import MovieCard, { type MovieCardHighlight } from "@/components/movie-card";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -18,9 +19,27 @@ import {
 
 type MovieSort = "asc" | "desc";
 
+const SPIN_RING_COLORS = [
+  "ring-red-500",
+  "ring-orange-500",
+  "ring-amber-500",
+  "ring-lime-500",
+  "ring-emerald-500",
+  "ring-cyan-500",
+  "ring-blue-500",
+  "ring-violet-500",
+  "ring-fuchsia-500",
+  "ring-pink-500",
+] as const;
+
 const AllMoviesContent = () => {
   const [sort, setSort] = useState<MovieSort>("desc");
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [spinColorIndex, setSpinColorIndex] = useState(0);
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const [isPicking, setIsPicking] = useState(false);
+  const pickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { execute, isExecuting } = useAction(listMovies, {
     onSuccess: (res) => {
@@ -31,9 +50,85 @@ const AllMoviesContent = () => {
     },
   });
 
+  const clearPickTimer = useCallback(() => {
+    if (pickTimerRef.current) {
+      clearTimeout(pickTimerRef.current);
+      pickTimerRef.current = null;
+    }
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    clearPickTimer();
+    setIsPicking(false);
+    setPickedId(null);
+    setActiveIndex(null);
+    setSpinColorIndex(0);
+  }, [clearPickTimer]);
+
   useEffect(() => {
     execute({ sort });
   }, [sort, execute]);
+
+  useEffect(() => {
+    return () => clearPickTimer();
+  }, [clearPickTimer]);
+
+  const pickRandomMovie = () => {
+    if (movies.length === 0 || isPicking) {
+      return;
+    }
+
+    clearPickTimer();
+    setIsPicking(true);
+    setPickedId(null);
+
+    const winnerIndex = Math.floor(Math.random() * movies.length);
+    const totalSteps = movies.length * 3 + winnerIndex;
+    let step = 0;
+
+    const tick = () => {
+      const currentIndex = step % movies.length;
+      setActiveIndex(currentIndex);
+      setSpinColorIndex(step % SPIN_RING_COLORS.length);
+      step += 1;
+
+      if (step > totalSteps) {
+        setActiveIndex(winnerIndex);
+        setPickedId(movies[winnerIndex].id);
+        setIsPicking(false);
+        return;
+      }
+
+      const progress = step / totalSteps;
+      const delay = 70 + progress * progress * 350;
+
+      pickTimerRef.current = setTimeout(tick, delay);
+    };
+
+    tick();
+  };
+
+  const getHighlight = (movie: Movie, index: number): MovieCardHighlight | null => {
+    if (pickedId === movie.id) {
+      return { variant: "selected" };
+    }
+
+    if (isPicking && activeIndex === index) {
+      return {
+        variant: "spinning",
+        ringClass: SPIN_RING_COLORS[spinColorIndex],
+      };
+    }
+
+    return null;
+  };
+
+  const handleDeleted = () => {
+    if (pickedId) {
+      clearSelection();
+    }
+    execute({ sort });
+  };
 
   const movieCountLabel =
     movies.length === 1 ? "1 movie" : `${movies.length} movies`;
@@ -46,27 +141,59 @@ const AllMoviesContent = () => {
           <p className="text-muted-foreground">{movieCountLabel}</p>
         </div>
 
-        <Select
-          value={sort}
-          onValueChange={(value) => setSort(value as MovieSort)}
-        >
-          <SelectTrigger size="sm" aria-label="Sort by date added">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="end">
-            <SelectItem value="desc">Newest first</SelectItem>
-            <SelectItem value="asc">Oldest first</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex flex-wrap items-center gap-2">
+          {movies.length > 0 ? (
+            <>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={pickRandomMovie}
+                disabled={isPicking}
+              >
+                <DicesIcon />
+                {isPicking ? "Picking..." : "Pick Random Movie"}
+              </Button>
+              {pickedId ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={clearSelection}
+                >
+                  <XIcon />
+                  Clear
+                </Button>
+              ) : null}
+            </>
+          ) : null}
+
+          <Select
+            value={sort}
+            onValueChange={(value) => {
+              clearSelection();
+              setSort(value as MovieSort);
+            }}
+          >
+            <SelectTrigger size="sm" aria-label="Sort by date added">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
+              <SelectItem value="desc">Newest first</SelectItem>
+              <SelectItem value="asc">Oldest first</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {!isExecuting && movies.length > 0 ? (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {movies.map((movie) => (
+          {movies.map((movie, index) => (
             <MovieCard
               key={movie.id}
               movie={movie}
-              onDeleted={() => execute({ sort })}
+              highlight={getHighlight(movie, index)}
+              onDeleted={handleDeleted}
             />
           ))}
         </div>
